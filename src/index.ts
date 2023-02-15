@@ -1,7 +1,7 @@
 
 
 import express from 'express';
-import BetterSqlite3, { SqliteError } from 'better-sqlite3';
+import BetterSqlite3 from 'better-sqlite3';
 import { createId } from '@paralleldrive/cuid2';
 import { Account, AccountRequest, BalanceRequest, DepositRequestBody, DepositRequestParams, Transfer } from './types';
 
@@ -74,7 +74,6 @@ app.post('/accounts/transfer', (req, res) => {
   try {
     db.transaction(() => {
       const fromAccount: Account = queryAccount.get(from);
-      // console.log({ fromAccount });
 
       if (fromAccount.balance - ammount < 0) {
         throw new Error('INSUFICIENT_BALANCE_ERROR');
