@@ -1,4 +1,6 @@
 
+All queries examples below:
+
 ```bash
 curl -i \
   -d '{"account_number":"A"}' \
@@ -25,5 +27,13 @@ curl -i \
 
 ```bash
 curl -i http://localhost:3000/accounts/A/balance
+```
+
+
+
+To reset all accounts to R$1000,00 balance:
+
+```sql
+UPDATE account SET balance = 100000;
 ```
 

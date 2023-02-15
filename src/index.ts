@@ -59,7 +59,7 @@ app.post('/accounts/transfer', (req, res) => {
   const body: Transfer = req.body;
   const { ammount, from, to } = body || {};
 
-  if (typeof ammount !== 'number' || ammount <= 0 ||
+  if (typeof ammount !== 'number' || ammount <= 0 || !Number.isInteger(ammount) ||
     typeof from !== 'string' ||
     typeof to !== 'string'
   ) {
@@ -136,7 +136,7 @@ app.post('/accounts/:accountNumber/deposit', (req, res) => {
   const { ammount } = body || {};
 
   if (!accountNumber || typeof accountNumber !== 'string' ||
-    typeof ammount !== 'number' || ammount <= 0
+    typeof ammount !== 'number' || ammount <= 0 || !Number.isInteger(ammount)
   ) {
     res.status(400).send();
     return;
