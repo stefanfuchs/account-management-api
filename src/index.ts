@@ -3,7 +3,7 @@
 import express from 'express';
 import BetterSqlite3, { SqliteError } from 'better-sqlite3';
 import { createId } from '@paralleldrive/cuid2';
-import { Account, AccountRequest, Transfer } from './types';
+import { Account, AccountRequest, BalanceRequest, Transfer } from './types';
 
 const app = express();
 const db = new BetterSqlite3('data.db');
@@ -64,14 +64,12 @@ app.post('/accounts/transfer', (req, res) => {
     typeof to !== 'string'
   ) {
     res.status(400).send();
+    return;
   }
 
   const queryAccount = db.prepare(`SELECT id, balance FROM account WHERE id = ?;`);
   const subtractFromAccount = db.prepare(`UPDATE account SET balance = balance - ? WHERE id = ?;`);
   const addToAccount = db.prepare(`UPDATE account SET balance = balance + ? WHERE id = ?;`);
-
-  // const fromAccount1: Account = queryAccount.get(from);
-  // console.log({ fromAccount1 })
 
   try {
     db.transaction(() => {
@@ -100,6 +98,35 @@ app.post('/accounts/transfer', (req, res) => {
   printAllAccounts()
 
   res.status(200).send();
+});
+
+
+app.get('/accounts/:accountNumber/balance', (req, res) => {
+  const params: BalanceRequest = req.params
+  const { accountNumber } = params || {};
+
+  if (!accountNumber || typeof accountNumber !== 'string') {
+    res.status(400).send();
+    return;
+  }
+
+  const queryAccount = db.prepare(`SELECT id, balance FROM account WHERE id = ?;`);
+
+  try {
+    const account: Account = queryAccount.get(accountNumber);
+    if (!account) {
+      res.status(404).send();
+      return;
+    }
+
+    res.status(200).send({ ammount: account.balance });
+    return;
+
+  } catch (e: any) {
+    console.log('Error in /accounts/:accountNumber/balance: ', e);
+    res.status(400).send();
+    return;
+  }
 });
 
 const port = process.env.PORT || 3000;

@@ -4,6 +4,10 @@ export interface AccountRequest {
   account_number: string
 }
 
+export interface BalanceRequest {
+  accountNumber: string
+}
+
 export interface Account {
   id: string
   /** Monetary values are always integers that represent cents. e.g. R$1000,00 is represented as 100000 */

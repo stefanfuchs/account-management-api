@@ -12,4 +12,7 @@ curl -i \
   http://localhost:3000/accounts/transfer
 
 
+curl -i http://localhost:3000/accounts/A/balance
+
+
 
