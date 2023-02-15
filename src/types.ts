@@ -18,6 +18,14 @@ export interface Deposit {
   ammount: number
 }
 
+export interface DepositRequestParams {
+  accountNumber: string
+}
+
+export interface DepositRequestBody {
+  ammount: number
+}
+
 export interface Transfer {
   ammount: number
   from: string

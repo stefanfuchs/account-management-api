@@ -3,7 +3,7 @@
 import express from 'express';
 import BetterSqlite3, { SqliteError } from 'better-sqlite3';
 import { createId } from '@paralleldrive/cuid2';
-import { Account, AccountRequest, BalanceRequest, Transfer } from './types';
+import { Account, AccountRequest, BalanceRequest, DepositRequestBody, DepositRequestParams, Transfer } from './types';
 
 const app = express();
 const db = new BetterSqlite3('data.db');
@@ -31,7 +31,7 @@ const printAllAccounts = () => {
 app.use(express.json());
 
 app.post('/accounts', (req, res) => {
-  const body: AccountRequest = req.body
+  const body: AccountRequest = req.body;
   const accountNumber = body.account_number || createId();
   const insertData = db.prepare(`INSERT INTO account (id) VALUES (?);`);
 
@@ -56,7 +56,7 @@ app.post('/accounts', (req, res) => {
 
 
 app.post('/accounts/transfer', (req, res) => {
-  const body: Transfer = req.body
+  const body: Transfer = req.body;
   const { ammount, from, to } = body || {};
 
   if (typeof ammount !== 'number' || ammount <= 0 ||
@@ -74,7 +74,7 @@ app.post('/accounts/transfer', (req, res) => {
   try {
     db.transaction(() => {
       const fromAccount: Account = queryAccount.get(from);
-      console.log({ fromAccount })
+      // console.log({ fromAccount });
 
       if (fromAccount.balance - ammount < 0) {
         throw new Error('INSUFICIENT_BALANCE_ERROR');
@@ -102,7 +102,7 @@ app.post('/accounts/transfer', (req, res) => {
 
 
 app.get('/accounts/:accountNumber/balance', (req, res) => {
-  const params: BalanceRequest = req.params
+  const params: BalanceRequest = req.params;
   const { accountNumber } = params || {};
 
   if (!accountNumber || typeof accountNumber !== 'string') {
@@ -128,6 +128,43 @@ app.get('/accounts/:accountNumber/balance', (req, res) => {
     return;
   }
 });
+
+
+app.post('/accounts/:accountNumber/deposit', (req, res) => {
+  const params: DepositRequestParams = req.params;
+  const body: DepositRequestBody = req.body;
+  const { accountNumber } = params || {};
+  const { ammount } = body || {};
+
+  if (!accountNumber || typeof accountNumber !== 'string' ||
+    typeof ammount !== 'number' || ammount <= 0
+  ) {
+    res.status(400).send();
+    return;
+  }
+
+  const addToAccount = db.prepare(`UPDATE account SET balance = balance + ? WHERE id = ?;`);
+
+  try {
+    const updateResult = addToAccount.run(ammount, accountNumber);
+    if (updateResult.changes < 1) {
+      // no such account exists
+      res.status(404).send();
+      return;
+    }
+
+    res.status(200).send();
+    printAllAccounts()
+    return;
+
+  } catch (e: any) {
+    console.log('Error in /accounts/:accountNumber/deposit: ', e);
+    res.status(400).send();
+    return;
+  }
+
+});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
